@@ -1,38 +1,21 @@
-# create-svelte
+# guitar-fretboard-flashcards
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+Educational tool to help musicians learn notes on a guitar neck. 
 
-## Creating a project
+Also, a good excuse to play around with Svelte ;)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
+* Quizzes the user by note name on a particular string using random  
+* User can choose to be quizzed on a single string
+* When user chooses to proceed to next card, the note's position is revealed on the guitar neck
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
-
-# create a new project in my-app
-npm init svelte@next my-app
-```
-
-> Note: the `@next` is temporary
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
-
-```bash
-npm run build
-```
-
-> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
+## Future Feature Ideas
+* Allow configuration for different tunings
+* Improve flash card logic to be a little less random  
+  * Make sure all notes are quizzed with some regularity
+  * More heavily weight missed notes (would require some interesting UI interaction)
+* Quiz the user on building triads or chords
+* Could be useful simply for visualizing:
+  * Scales
+  * Everywhere a particular note appears
+  * Octaves
