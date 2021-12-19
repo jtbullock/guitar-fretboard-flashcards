@@ -1,83 +1,89 @@
 <script type="text/javascript">
+    import QuizConfig from "$lib/quiz-config.svelte";
+    import QuizCard from "$lib/quiz-card.svelte";
 
-const notes = ['A', 'A♯/B♭', 'B', 'C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭' ];
+    import { quizModes } from "$lib/quiz-modes.js";
+    import { guitarStrings, musicScale, selectRandomEnharmonic, musicNote } from "$lib/music.js";
+    import jArray from "$lib/jarray.js";
 
-const guitarStrings = ['E', 'A', 'D', 'G', 'B', 'E'].reverse();
+    import '../app.css';
 
-const quizModes = {
-    AllStrings: 'all-strings',
-    SingleString: 'single-string'
-};
+    let isRunningQuiz = false;
+    let quizNote = { string: '', note: '' };
+    let quizConfig = { mode: '', string: '' };
+    let revealNote = false;
 
-let quizString = guitarStrings[0];
+    $:shouldShowNote = ( note, string ) =>
+        revealNote &&
+        musicNote.isSamePitch( quizNote.note, note ) && quizNote.string === string
 
-let quizMode = quizModes.AllStrings;
-
-let isRunningQuiz = false;
-
-let quizNote = { string: '', note: '' };
-
-let revealNote = false;
-
-function shouldShowNote(note, string)
-{
-    console.log("SSN");
-    return revealNote && quizNote.note === note && quizNote.string === string;
-}
-
-function setQuizNote()
-{
-    var string = quizMode === quizModes.SingleString ?
-        quizString : guitarStrings[Math.floor(Math.random() * guitarStrings.length)];
-
-    var note = notes[Math.floor(Math.random() * notes.length)];
-
-    quizNote = { string, note };
-
-    console.log(quizNote);
-}
-
-function getFretClass(fret)
-{
-    if(fret === 0)
-    {
-        return "open-string"
-    }
-    else if([3, 5, 7, 9].includes(fret))
-    {
-        return "fret marker";
+    const setQuizNote = () => {
+        revealNote = false;
+        quizNote = {
+            string: quizConfig.mode === quizModes.SingleString ?
+                quizConfig.string : jArray.getRandomElement( guitarStrings ),
+            note: selectRandomEnharmonic( jArray.getRandomElement( musicScale ) )
+        };
     }
 
-    return "fret";
-}
+    const getFretClass = ( fret ) => {
+        if ( fret === 0 ) {
+            return "open-string"
+        } else if ( [ 3, 5, 7, 9 ].includes( fret ) ) {
+            return "fret marker";
+        }
 
-function getStringClass(fret, string)
-{
-    if(fret > 0)
-    {
-        return `string s${string + 1}`
+        return "fret";
     }
 
-    return '';
-}
+    const getStringClass = ( fret, string ) => fret > 0 ? `string s${ string + 1 }` : '';
 
-function getNote(fret, string)
-{
-    var firstNoteIndex = notes.indexOf(guitarStrings[string]);
+    const getNote = ( fret, string ) => {
+        const firstNoteIndex = musicScale.indexOf( guitarStrings[ string ] );
+        return musicScale[ (firstNoteIndex + fret) % musicScale.length ];
+    }
 
-    return notes[(firstNoteIndex + fret) % notes.length];
-}
-
-function startQuiz()
-{
-    isRunningQuiz = true;
-    setQuizNote();
-}
+    const handleStartQuiz = e => {
+        quizConfig = e.detail;
+        isRunningQuiz = true;
+        setQuizNote();
+    }
 
 </script>
 
-<style>
+{#if !isRunningQuiz}
+    <QuizConfig on:start={handleStartQuiz}/>
+{:else }
+    <QuizCard {quizNote}
+              on:revealNote={() => revealNote = true}
+              on:nextNote={setQuizNote}
+              on:endQuiz={() => isRunningQuiz=false} />
+{/if}
 
+{#each guitarStrings as string, stringNumber}
+
+    <div class="string-box">
+
+        {#each musicScale as note, fretNumber}
+
+            <div class={getFretClass(fretNumber)}>
+
+                <div class={getStringClass(fretNumber, stringNumber)}>
+
+                </div>
+
+                {#if !isRunningQuiz || shouldShowNote( getNote( fretNumber, stringNumber ), string ) }
+                    <div class="note-box">{getNote( fretNumber, stringNumber )}</div>
+                {/if}
+            </div>
+
+        {/each}
+
+    </div>
+
+{/each}
+
+<style>
     .fret {
         border-right: solid 1px black;
         height: 26px;
@@ -97,7 +103,7 @@ function startQuiz()
     }
 
     .string-box {
-        display:flex;
+        display: flex;
         flex-direction: row;
     }
 
@@ -141,76 +147,4 @@ function startQuiz()
         left: 17px;
         padding-top: 2px;
     }
-
-    .option-box {
-        border: solid 1px lightgray;
-        border-radius: 6px;
-        box-shadow: lightgray 1px 1px 3px;
-        margin-bottom: 1em;
-        width: 400px;
-        padding: 0.5em;
-    }
 </style>
-
-{#if !isRunningQuiz}
-<div class="option-box">
-    <strong>Quiz Mode:</strong>
-
-    <label>
-        <input type=radio bind:group={quizMode} name="scoops" value={quizModes.AllStrings} />
-        All Strings
-    </label>
-
-    <label>
-        <input type=radio bind:group={quizMode} name="scoops" value={quizModes.SingleString} />
-        Single String
-    </label>
-
-    {#if quizMode === quizModes.SingleString}
-    <select bind:value={quizString}>
-        {#each guitarStrings as string}
-            <option value={string}>
-                {string}
-            </option>
-        {/each}
-    </select>
-    {/if}
-
-    <br />
-    <br />
-
-    <button type="button" on:click={startQuiz}>Start!</button>
-</div>
-{:else }
-<div class="option-box">
-    {quizNote.note} on {quizNote.string} string
-    <br />
-    <!--<button type="button" on:click={() => revealNote = true}>Check</button>-->
-    <button type="button" on:click={() => setQuizNote()}>Next</button>
-    <br />
-    <br /><button type="button" on:click={() => isRunningQuiz=false}>End</button>
-</div>
-{/if}
-
-{#each guitarStrings as string, stringNumber}
-
-    <div class="string-box">
-
-    {#each notes as note, fretNumber}
-
-        <div class={getFretClass(fretNumber)}>
-
-            <div class={getStringClass(fretNumber, stringNumber)}>
-
-            </div>
-
-            {#if !isRunningQuiz || shouldShowNote(note, string) }
-                <div class="note-box">{getNote(fretNumber, stringNumber)}</div>
-            {/if}
-        </div>
-
-    {/each}
-
-    </div>
-
-{/each}

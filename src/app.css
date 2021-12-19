@@ -1,0 +1,17 @@
+.option-box {
+    border: solid 1px lightgray;
+    border-radius: 6px;
+    box-shadow: lightgray 1px 1px 3px;
+    margin-bottom: 1em;
+    width: 400px;
+    padding: 0.5em;
+}
+
+button {
+    font-size: 1em;
+    padding: 4px 8px;
+}
+
+button.primary {
+    background-color: #428dfd;
+}
