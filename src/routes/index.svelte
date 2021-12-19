@@ -4,6 +4,39 @@ const notes = ['A', 'A♯/B♭', 'B', 'C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', '
 
 const guitarStrings = ['E', 'A', 'D', 'G', 'B', 'E'].reverse();
 
+const quizModes = {
+    AllStrings: 'all-strings',
+    SingleString: 'single-string'
+};
+
+let quizString = guitarStrings[0];
+
+let quizMode = quizModes.AllStrings;
+
+let isRunningQuiz = false;
+
+let quizNote = { string: '', note: '' };
+
+let revealNote = false;
+
+function shouldShowNote(note, string)
+{
+    console.log("SSN");
+    return revealNote && quizNote.note === note && quizNote.string === string;
+}
+
+function setQuizNote()
+{
+    var string = quizMode === quizModes.SingleString ?
+        quizString : guitarStrings[Math.floor(Math.random() * guitarStrings.length)];
+
+    var note = notes[Math.floor(Math.random() * notes.length)];
+
+    quizNote = { string, note };
+
+    console.log(quizNote);
+}
+
 function getFretClass(fret)
 {
     if(fret === 0)
@@ -33,6 +66,12 @@ function getNote(fret, string)
     var firstNoteIndex = notes.indexOf(guitarStrings[string]);
 
     return notes[(firstNoteIndex + fret) % notes.length];
+}
+
+function startQuiz()
+{
+    isRunningQuiz = true;
+    setQuizNote();
 }
 
 </script>
@@ -102,7 +141,56 @@ function getNote(fret, string)
         left: 17px;
         padding-top: 2px;
     }
+
+    .option-box {
+        border: solid 1px lightgray;
+        border-radius: 6px;
+        box-shadow: lightgray 1px 1px 3px;
+        margin-bottom: 1em;
+        width: 400px;
+        padding: 0.5em;
+    }
 </style>
+
+{#if !isRunningQuiz}
+<div class="option-box">
+    <strong>Quiz Mode:</strong>
+
+    <label>
+        <input type=radio bind:group={quizMode} name="scoops" value={quizModes.AllStrings} />
+        All Strings
+    </label>
+
+    <label>
+        <input type=radio bind:group={quizMode} name="scoops" value={quizModes.SingleString} />
+        Single String
+    </label>
+
+    {#if quizMode === quizModes.SingleString}
+    <select bind:value={quizString}>
+        {#each guitarStrings as string}
+            <option value={string}>
+                {string}
+            </option>
+        {/each}
+    </select>
+    {/if}
+
+    <br />
+    <br />
+
+    <button type="button" on:click={startQuiz}>Start!</button>
+</div>
+{:else }
+<div class="option-box">
+    {quizNote.note} on {quizNote.string} string
+    <br />
+    <!--<button type="button" on:click={() => revealNote = true}>Check</button>-->
+    <button type="button" on:click={() => setQuizNote()}>Next</button>
+    <br />
+    <br /><button type="button" on:click={() => isRunningQuiz=false}>End</button>
+</div>
+{/if}
 
 {#each guitarStrings as string, stringNumber}
 
@@ -116,8 +204,9 @@ function getNote(fret, string)
 
             </div>
 
-            <div class="note-box">{getNote(fretNumber, stringNumber)}</div>
-
+            {#if !isRunningQuiz || shouldShowNote(note, string) }
+                <div class="note-box">{getNote(fretNumber, stringNumber)}</div>
+            {/if}
         </div>
 
     {/each}
